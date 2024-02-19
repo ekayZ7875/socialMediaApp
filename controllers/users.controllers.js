@@ -71,8 +71,67 @@ const login = (async(req,res)=>{
     }
 })
 
+const logout = (async(req,res)=>{
+    const token = req.headers.authorization
+
+    if(!token){
+        res.json({message:'Invalid Authorization'})
+
+        jwt.verify(token,process.env.SECRET_KEY,(error,decoded)=>{
+            if(error){
+                console.log(error)
+                res.json({message:'Invalid Token'})
+            } else{
+                res.json({message:'logout successfull'})
+            }
+        })
+    }
+
+
+})
+
+
+const sendMessages = (async(req,res)=>{
+
+    const {sender_id,receiver_id,messages} = req.body
+
+    const messageSuccess = await db('messages').insert({
+        sender_id,
+        receiver_id,
+        messages
+    })
+    async function sendMail(){
+        const transporter = nodemailer.createTransport({
+           service:'gmail',
+           auth:{
+               user:'eklavyasinghparihar7875@gmail.com',
+               pass:'qnsqoemikkgsyutn'
+           }
+        })
+   
+   
+    const mailOptionsMessages = {
+        from:'eklavyasinghparihar7875@gmail.com',
+        to:'jaybaghel7005@gmail.com',
+        subject:'New Notification',
+        text:`${sender_id} sent you a message`
+    }
+    try{
+        const result = await transporter.sendMail(mailOptionsMessages)
+        console.log('Email sent successfully')
+    } catch(error){
+        console.log(error)
+    }
+}
+sendMail()
+    res.json({message:'message sent successfully'})
+
+})
+
 
 module.exports = {
     signUp,
-    login
+    login,
+    logout,
+    sendMessages
 }
